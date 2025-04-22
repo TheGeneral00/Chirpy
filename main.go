@@ -8,6 +8,10 @@ import (
     "os"
 )
 
+type apiHandler struct {}
+
+func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
+
 func main() {
     // Create log file
     logFile, err := os.OpenFile("server_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
@@ -30,6 +34,15 @@ func main() {
         Addr:    ":8080",
         Handler: mux,
     }
+    //adding http.FileServer as handler with root /content
+    mux.Handle("/", http.FileServer(http.Dir(".")))
+
+    //adding a readiness endpoint
+    mux.HandleFunc("/healthz", func(w http.ResponseWriter, req *http.Request) {
+            w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+            w.WriteHeader(200)
+            w.Write([]byte("OK"))
+    })
 
     log.Printf("Starting server on port %v\n", server.Addr)
     err = server.ListenAndServe()
