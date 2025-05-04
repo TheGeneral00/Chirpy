@@ -1,16 +1,28 @@
 package main
 
 import (
-    "fmt"
-    "io"
-    "log"
-    "net/http"
-    "os"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"sync/atomic"
 )
 
 type apiHandler struct {}
 
 func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
+
+type apiConfig struct {
+        fileServerHits atomic.Int32
+}
+
+func (cfg *apiConfig) middleWareMetricsInc(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request){
+                cfg.fileServerHits.Add(1)
+                next.ServeHTTP(w, req)
+        })
+}
 
 func main() {
     // Create log file
@@ -27,6 +39,9 @@ func main() {
     log.SetFlags(log.LstdFlags | log.Lmicroseconds)
     
     log.Println("Logging system initialized")
+
+    //initialize Config to track metrics 
+    var apiCfg apiConfig
     
     // Create and start server
     mux := http.NewServeMux()
@@ -35,13 +50,28 @@ func main() {
         Handler: mux,
     }
     //adding http.FileServer as handler with root /content
-    mux.Handle("/", http.FileServer(http.Dir(".")))
+    handler := http.FileServer(http.Dir("."))
+    mux.Handle("/app/", apiCfg.middleWareMetricsInc(handler))
 
     //adding a readiness endpoint
-    mux.HandleFunc("/healthz", func(w http.ResponseWriter, req *http.Request) {
+    mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, req *http.Request) {
             w.Header().Set("Content-Type", "text/plain; charset=utf-8")
             w.WriteHeader(200)
-            w.Write([]byte("OK"))
+            w.Write([]byte("OK\n"))
+    })
+
+    // adding metrics endpoint
+    mux.HandleFunc("GET /metrics", func(w http.ResponseWriter, req *http.Request) {
+            w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+            w.WriteHeader(200)
+            hitCount := apiCfg.fileServerHits.Load()
+            string := fmt.Sprintf("Hits: %v\n", hitCount)
+            w.Write([]byte(string))
+    })
+
+    mux.HandleFunc("POST /reset", func(w http.ResponseWriter, req *http.Request) {
+            apiCfg.fileServerHits.Store(0) 
+            w.Write([]byte("Metrics have been resetted.\n"))
     })
 
     log.Printf("Starting server on port %v\n", server.Addr)
