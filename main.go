@@ -1,15 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync/atomic"
+
+	"github.com/TheGeneral00/Chirpy/internal/database"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type apiConfig struct {
 	fileserverHits atomic.Int32
+        dbQueries *database.Queries
 }
 
 func main() {
@@ -20,13 +26,20 @@ func main() {
                 os.Exit(1)
         }
         defer logFile.Close()
+        //calling godotenv to auto import env 
+        godotenv.Load()
 
+        //Set connection to database
+        dbURL := os.Getenv("DB_URL")
+        db, err := sql.Open("postgres", dbURL)
+        dbQueries := database.New(db)
 
-	const filepathRoot = "./app"
+        const filepathRoot = "./app"
 	const port = "8080"
 
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
+                dbQueries: dbQueries,
 	}
 
 	mux := http.NewServeMux()
@@ -35,9 +48,12 @@ func main() {
 
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 	mux.HandleFunc("POST /api/validate_chirp", handlerChirpsValidate)
+        mux.HandleFunc("POST /api/users", apiCfg.handlerAddUser)
 
-	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
+	
+        mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
+
 
 	srv := &http.Server{
 		Addr:    ":" + port,
