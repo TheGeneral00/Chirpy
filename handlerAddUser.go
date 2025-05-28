@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-
-	"github.com/TheGeneral00/Chirpy/internal/database"
+        "github.com/TheGeneral00/Chirpy/internal/auth"
+        "github.com/TheGeneral00/Chirpy/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -14,20 +14,35 @@ type User struct {
         CreatedAt       time.Time       `json:"created_at"`
         UpdatedAt       time.Time       `json:"updated_at"`
         Email           string          `json:"email"`
+        HashedPassword  string          `json:"hashed_password"`
 }
 
-func (cfg *apiConfig) handlerAddUser (w http.ResponseWriter, r *http.Request){
-        type parameters struct{
-                Email string `json:"email"`
+type UserRequestParameters struct{
+                Email           string `json:"email"`
+                Password        string `json:"password"`
         }
+
+func (cfg *apiConfig) handlerAddUser (w http.ResponseWriter, r *http.Request){
+
         decoder := json.NewDecoder(r.Body)
-        params := parameters{}
+        var params UserRequestParameters
         err := decoder.Decode(&params)
         if err != nil{
                 respondWithError(w, http.StatusInternalServerError, "Failed to add user", err)
                 return
         }
-        user, err := cfg.dbQueries.CreateUser(r.Context(), params.Email)
+        
+        hashedPassword, err := auth.HashPassword(params.Password)
+        if err != nil {
+                respondWithError(w, http.StatusInternalServerError, "Failed to create user", err)
+                return
+        }
+
+        dbParams := database.CreateUserParams{
+                Email: params.Email,
+                HashedPassword: hashedPassword, 
+        }
+        user, err := cfg.dbQueries.CreateUser(r.Context(), dbParams)
         if err != nil{
                 respondWithError(w, http.StatusInternalServerError, "Failed to add user", err)
                 return
@@ -41,5 +56,6 @@ func dbUserToUser (dbUser database.User) User {
                 CreatedAt:      dbUser.CreatedAt,
                 UpdatedAt:      dbUser.UpdatedAt,
                 Email:          dbUser.Email,
+                HashedPassword:       dbUser.HashedPassword,
         }
 }

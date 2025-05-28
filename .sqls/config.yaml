@@ -1,0 +1,4 @@
+connections:
+  - alias: chirpy
+    driver: postgresql
+    dataSourceName: "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable"
