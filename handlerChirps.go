@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TheGeneral00/Chirpy/internal/auth"
 	"github.com/TheGeneral00/Chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -26,7 +27,6 @@ type dbParams struct {
 func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
-                UserID string `json:"user_id"`
 	}
 	
 	decoder := json.NewDecoder(r.Body)
@@ -37,16 +37,24 @@ func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+        token, err := auth.GetBearerToken(r.Header)
+        if err != nil {
+                respondWithError(w, http.StatusInternalServerError, "Unable to retrieve token", err)
+        }
+        userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
+        if err != nil {
+                respondWithError(w, http.StatusInternalServerError, "Failed to validate token", err)
+        }
+
+        if userID == uuid.Nil {
+                respondWithError(w, http.StatusUnauthorized, "Token is not valid. Access denied.", nil)
+        }
+        
 	const maxChirpLength = 140
 	if len(params.Body) > maxChirpLength {
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long", nil)
 		return
 	}
-
-        userID, err := uuid.Parse(params.UserID)
-        if err != nil {
-                respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp", err)
-        }
 
         dbParams := database.CreateChirpParams{
                 Body: params.Body,
@@ -55,7 +63,7 @@ func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
         
         dbChirp, err := cfg.dbQueries.CreateChirp(r.Context(), dbParams)
         if err != nil {
-                respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp", err)
+                respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp in db", err)
                 return 
         }
         chirp := dbChirpToChirp(dbChirp)

@@ -1,7 +1,11 @@
 package auth
 
 import (
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -33,4 +37,12 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error){
         } else {
                 return uuid.Nil, err
         }
+}
+
+func GetBearerToken(headers http.Header) (string, error){
+        TokenString, _ := strings.CutPrefix(headers.Get("Authorization"), "Bearer ")
+        if TokenString == "" {
+                return "", fmt.Errorf("No token string received")
+        }
+        return TokenString, nil
 }

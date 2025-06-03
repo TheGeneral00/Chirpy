@@ -16,6 +16,7 @@ import (
 type apiConfig struct {
 	fileserverHits atomic.Int32
         dbQueries *database.Queries
+        jwtSecret string
 }
 
 func main() {
@@ -26,8 +27,12 @@ func main() {
                 os.Exit(1)
         }
         defer logFile.Close()
+
         //calling godotenv to auto import env 
-        godotenv.Load()
+        err = godotenv.Load()
+        if err != nil{
+                log.Fatalf("Error loading .env file: %v", err)
+        }
 
         //Set connection to database
         dbURL := os.Getenv("DB_URL")
@@ -40,7 +45,9 @@ func main() {
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
                 dbQueries: dbQueries,
+                jwtSecret: os.Getenv("JWTSecret"),
 	}
+
 
 	mux := http.NewServeMux()
 	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
