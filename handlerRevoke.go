@@ -2,13 +2,13 @@ package main
 
 import (
 	"net/http"
-	"strings"
+	"github.com/TheGeneral00/Chirpy/internal/auth"
 )
 
 func(cfg *apiConfig) handlerRevoke(w http.ResponseWriter, r *http.Request) {
-        TokenString, _ := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-        if TokenString == "" {
-                respondWithError(w, http.StatusInternalServerError, "No token string received", nil)
+        TokenString, err := auth.GetBearerToken(r.Header)
+        if err != nil {
+                respondWithError(w, http.StatusUnauthorized, "No token supplied", err)
                 return
         }
         cfg.dbQueries.RevokeRefreshToken(r.Context(), TokenString)

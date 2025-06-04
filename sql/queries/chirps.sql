@@ -11,7 +11,7 @@ RETURNING *;
 
 -- name: DeleteChrip :one
 DELETE FROM chirps WHERE id = $1
-RETURNING *;
+RETURNING id;
 
 -- name: GetAllChirps :many
 SELECT * FROM chirps ORDER BY created_at ASC;

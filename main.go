@@ -61,10 +61,10 @@ func main() {
         mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirpByID)
         mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
         mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
-
-	
+        mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handlerDeleteChirp)
         mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
+        mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUserCredentials)
 
 
 	srv := &http.Server{
@@ -75,4 +75,3 @@ func main() {
 	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
 }
-
