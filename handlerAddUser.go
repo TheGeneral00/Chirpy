@@ -20,7 +20,6 @@ type User struct {
 type UserRequestParameters struct{
                 Email                   string `json:"email"`
                 Password                string `json:"password"`
-                ExpiresInSeconds        *int  `json:"expires_in_seconds,omitempty"`
         }
 
 func (cfg *apiConfig) handlerAddUser (w http.ResponseWriter, r *http.Request){

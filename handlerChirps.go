@@ -43,7 +43,7 @@ func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
         }
         userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
         if err != nil {
-                respondWithError(w, http.StatusInternalServerError, "Failed to validate token", err)
+                respondWithError(w, http.StatusUnauthorized, "Failed to validate token", err)
         }
 
         if userID == uuid.Nil {
