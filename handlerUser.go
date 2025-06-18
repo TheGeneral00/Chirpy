@@ -16,6 +16,7 @@ type User struct {
         UpdatedAt       time.Time       `json:"updated_at"`
         Email           string          `json:"email"`
         HashedPassword  string          `json:"hashed_password"`
+        IsChirpyRed     bool            `json:"is_chirpy_red"`
 }
 
 type UserRequestParameters struct{
@@ -62,6 +63,7 @@ func dbUserToUser (dbUser database.User) User {
                 UpdatedAt:      dbUser.UpdatedAt,
                 Email:          dbUser.Email,
                 HashedPassword:       dbUser.HashedPassword,
+                IsChirpyRed:    dbUser.IsChirpyRed,
         }
 }
 

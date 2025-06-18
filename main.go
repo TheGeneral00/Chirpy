@@ -17,6 +17,7 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
         dbQueries *database.Queries
         jwtSecret string
+        polkaKey string
 }
 
 func main() {
@@ -46,6 +47,7 @@ func main() {
 		fileserverHits: atomic.Int32{},
                 dbQueries: dbQueries,
                 jwtSecret: os.Getenv("JWTSecret"),
+                polkaKey: os.Getenv("Polka_Key"),
 	}
 
 
@@ -65,6 +67,7 @@ func main() {
         mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
         mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUserCredentials)
+        mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerPolkaWebhooks)
 
 
 	srv := &http.Server{

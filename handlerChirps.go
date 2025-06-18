@@ -71,19 +71,26 @@ func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
-    dbChirps, err := cfg.dbQueries.GetAllChirps(r.Context())
-    if err != nil {
-        respondWithError(w, http.StatusInternalServerError, "Unable to get all chirps", err)
-        return
-    }
-    
-    // Convert database chirps to API chirps with correct JSON field names
-    chirps := []Chirp{}
-    for _, dbChirp := range dbChirps {
-        chirps = append(chirps, dbChirpToChirp(dbChirp))
-    }
-    
-    respondWithJSON(w, http.StatusOK, chirps)
+        authorID := r.URL.Query().Get("author_id")
+        var dbChirps []database.Chirp
+        var err error
+        if authorID == "" {
+                dbChirps, err = cfg.dbQueries.GetAllChirps(r.Context())
+        } else {
+                userID := uuid.MustParse(authorID)
+                dbChirps, err = cfg.dbQueries.GetChirpsForUser(r.Context(), userID)
+        }
+        if err != nil {
+                respondWithError(w, http.StatusInternalServerError, "Failed to retrieve chirps", err)
+                return
+        }
+        // Convert database chirps to API chirps with correct JSON field names
+        chirps := []Chirp{}
+        for _, dbChirp := range dbChirps {
+                chirps = append(chirps, dbChirpToChirp(dbChirp))
+        }
+            
+            respondWithJSON(w, http.StatusOK, chirps)
 }
 
 func (cfg *apiConfig) handlerGetChirpByID(w http.ResponseWriter, r *http.Request) {
