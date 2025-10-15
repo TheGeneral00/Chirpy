@@ -35,4 +35,14 @@ type User struct {
 	Email          string
 	HashedPassword string
 	IsChirpyRed    bool
+	ActionCount    sql.NullInt32
+	LastAction     sql.NullTime
+}
+
+type UserEvent struct {
+	ID            int32
+	UserID        uuid.UUID
+	Action        string
+	ActionDetails string
+	CreatedAt     sql.NullTime
 }

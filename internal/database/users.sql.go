@@ -20,7 +20,7 @@ VALUES (
         $1,
         $2
 )
-RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
+RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red, action_count, last_action
 `
 
 type CreateUserParams struct {
@@ -38,12 +38,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.HashedPassword,
 		&i.IsChirpyRed,
+		&i.ActionCount,
+		&i.LastAction,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, created_at, updated_at, email, hashed_password, is_chirpy_red FROM users
+SELECT id, created_at, updated_at, email, hashed_password, is_chirpy_red, action_count, last_action FROM users
 WHERE email = $1
 `
 
@@ -57,6 +59,8 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.HashedPassword,
 		&i.IsChirpyRed,
+		&i.ActionCount,
+		&i.LastAction,
 	)
 	return i, err
 }
@@ -74,7 +78,7 @@ const updateUserCredentials = `-- name: UpdateUserCredentials :one
 UPDATE users 
 SET email = $2, hashed_password = $3
 WHERE id = $1
-RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
+RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red, action_count, last_action
 `
 
 type UpdateUserCredentialsParams struct {
@@ -93,6 +97,8 @@ func (q *Queries) UpdateUserCredentials(ctx context.Context, arg UpdateUserCrede
 		&i.Email,
 		&i.HashedPassword,
 		&i.IsChirpyRed,
+		&i.ActionCount,
+		&i.LastAction,
 	)
 	return i, err
 }

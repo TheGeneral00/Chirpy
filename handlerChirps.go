@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+        "sort"
 
 	"github.com/TheGeneral00/Chirpy/internal/auth"
 	"github.com/TheGeneral00/Chirpy/internal/database"
@@ -72,6 +73,7 @@ func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
         authorID := r.URL.Query().Get("author_id")
+        sortDirection := r.URL.Query().Get("sort")
         var dbChirps []database.Chirp
         var err error
         if authorID == "" {
@@ -79,6 +81,10 @@ func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
         } else {
                 userID := uuid.MustParse(authorID)
                 dbChirps, err = cfg.dbQueries.GetChirpsForUser(r.Context(), userID)
+        }
+
+        if sortDirection == "desc" {
+                sort.Slice(dbChirps, func(i, j int) bool {return dbChirps[i].CreatedAt.After(dbChirps[j].CreatedAt)})
         }
         if err != nil {
                 respondWithError(w, http.StatusInternalServerError, "Failed to retrieve chirps", err)
