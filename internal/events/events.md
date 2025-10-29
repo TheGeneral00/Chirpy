@@ -9,26 +9,54 @@
 - [Missing functionality](#missing-functionality)
   - [Feature X](#feature-x)
   - [Feature Y](#feature-y)
-- [Notes](#notes)
 - [References](#references)
 
 ### Core idea
 
 This module aims to solve the user event logging for this server implementation. It is supposed to be only dependent on the Postgres table related to user events, so it should be independent of the purpose of the server itself. 
 
-### Database integration
 
-The server is running a Postgres database. As a result of this, the user events module will be based on a Postgres database. The explicit sql schema and queries can be found in the sql dir. Schema are named according to the goose migration rules.
+### Database Integration
 
-**User events schema**
+The `user_events` module stores and retrieves events in a Postgres database. It relies on a single table, `user_events`, which tracks user activity. This module is independent of the rest of the server, aside from the foreign key reference to the `users` table.
 
-|Parameter      |Type       |Description        |
-|---------------|-----------|-------------------|
-|id             |Serial     |Primary Key        |
-|user_id        |UUID       |Primary Key and refrences user id |
-|methode        |Text       |http methode       |
-|methode_details|Text       |additional information on meta data |
-|created_at     |Timestamp  |time the methode was logged |
+#### Schema
+
+| Parameter      | Type       | Description                        |
+|----------------|-----------|------------------------------------|
+| id             | Serial     | Primary key                        |
+| user_id        | UUID       | References `users.id` (foreign key) |
+| method         | Text       | HTTP method                        |
+| method_details | Text       | Additional information on metadata |
+| created_at     | Timestamp  | Timestamp of the method log        |
+
+#### Queries
+
+The module provides several queries to manage and retrieve user events:
+
+| Query Name | Type | Description |
+|------------|------|-------------|
+| `InsertEvent` | `:exec` | Inserts a new user event into `user_events`, automatically setting `created_at` to the current timestamp. Returns the inserted row. |
+| `ResetEvents` | `:exec` | Truncates the `user_events` table and resets the ID sequence. |
+| `GetEvents` | `:many` | Retrieves all events, ordered by newest first (`created_at DESC`). |
+| `GetEventCount` | `:one` | Returns the total number of events in the table. |
+| `GetEventsInTimeWindow` | `:many` | Retrieves events whose `created_at` timestamp is within a specified time range. |
+| `GetEventsByUser` | `:many` | Retrieves all events for a specific user, ordered by newest first. |
+| `GetEventsByAction` | `:many` | Retrieves all events with a specific `action` type. |
+| `GetEventsByEndpoint` | `:many` | Retrieves events targeting a specific endpoint (extracted from JSON `method_details`). |
+| `CountEventsByUser` | `:one` | Counts all events performed by a specific user. |
+| `CountEventsByAction` | `:one` | Counts all events of a specific `action` type. |
+| `CountEventsByIP` | `:one` | Counts all events originating from a specific IP (extracted from JSON `method_details`). |
+| `GetEventsByIP` | `:many` | Retrieves all events from a specific IP address, ordered by newest first. |
+| `GetLatestEvents` | `:many` | Retrieves the most recent events, limited by a given number. |
+| `GetLatestEventsByUser` | `:many` | Retrieves the most recent events for a specific user, limited by a given number. |
+
+#### Notes
+
+- `user_id` has a foreign key constraint referencing the `users` table.
+- `method_details` stores structured data (JSON) with extra information such as IP and endpoint.
+- Most queries order results by `created_at DESC` to provide the latest events first.
+
 
 ### Essential functions
 
