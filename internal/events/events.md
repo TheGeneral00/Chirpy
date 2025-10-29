@@ -25,13 +25,10 @@ The server is running a Postgres database. As a result of this, the user events 
 |Parameter      |Type       |Description        |
 |---------------|-----------|-------------------|
 |id             |Serial     |Primary Key        |
-|user_id        |UUID       |Primary Key and ref|
-|               |           |rences user id     |
+|user_id        |UUID       |Primary Key and refrences user id |
 |methode        |Text       |http methode       |
-|methode_details|Text       |additional informat|
-|               |           |ion on meta data   |
-|created_at     |Timestamp  |time the methode wa|
-|               |           |s logged           |
+|methode_details|Text       |additional information on meta data |
+|created_at     |Timestamp  |time the methode was logged |
 
 ### Essential functions
 
