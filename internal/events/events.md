@@ -13,7 +13,7 @@
 
 ### Core idea
 
-This module aims to solve the user event logging for this server implementation. It is supposed to be only dependent on the Postgres table related to user events, so it should be independent of the purpose of the server itself. 
+This module aims to solve the user event logging for this server implementation. It is supposed to be only dependent on the Postgres table related to user events, so it should be independent of the purpose of the server itself. Certain statistical computations are implemented in C++ for performance reasons.
 
 ### Database Integration
 

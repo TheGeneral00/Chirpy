@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 	"sync/atomic"
-
 	"github.com/TheGeneral00/Chirpy/internal/database"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -18,6 +18,36 @@ type apiConfig struct {
         dbQueries *database.Queries
         jwtSecret string
         polkaKey string
+}
+
+func (cfg *apiConfig) middlewareCreateUserEvent(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+		userId := r.Header.Get("X-User-ID")
+		method := r.Method
+		details := r.URL.Path
+
+		next.ServeHTTP(w, r)
+			
+		userUUID, err := uuid.Parse(userId)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid or missing X-User-ID", err)
+			return
+		}
+
+		cfg.dbQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
+			UserID: userUUID,
+			Method: method,
+			MethodDetails: details,
+		})
+	})
+}
+
+func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//keep count of server hits 
+		cfg.fileserverHits.Add(1)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func main() {
@@ -50,9 +80,11 @@ func main() {
                 polkaKey: os.Getenv("Polka_Key"),
 	}
 
+	
+
 
 	mux := http.NewServeMux()
-	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
+	fsHandler := apiCfg.middlewareCreateUserEvent(apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
 	mux.Handle("/app/", fsHandler)
 
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
@@ -68,7 +100,11 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
         mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUserCredentials)
         mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerPolkaWebhooks)
-
+	mux.HandleFunc("Get /api/events", apiCfg.handlerGetAllEvents)
+	mux.HandleFunc("Get /api/events/latest", apiCfg.handlerGetLatestEvents)
+	mux.HandleFunc("Get /api/events/user/{userID}", apiCfg.handlerGetEventsByUser)
+	mux.HandleFunc("Get /api/events/method/{method}", apiCfg.handlerGetEventsByMethod)
+	mux.HandleFunc("Post /api/events/reset", apiCfg.handlerResetEvents)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

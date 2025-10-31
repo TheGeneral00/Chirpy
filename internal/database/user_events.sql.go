@@ -14,11 +14,11 @@ import (
 
 const countEventsByAction = `-- name: CountEventsByAction :one
 SELECT COUNT(*) FROM user_events
-WHERE action = $1
+WHERE method = $1
 `
 
-func (q *Queries) CountEventsByAction(ctx context.Context, action string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countEventsByAction, action)
+func (q *Queries) CountEventsByAction(ctx context.Context, method string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countEventsByAction, method)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -26,11 +26,11 @@ func (q *Queries) CountEventsByAction(ctx context.Context, action string) (int64
 
 const countEventsByIP = `-- name: CountEventsByIP :one
 SELECT COUNT(*) FROM user_events
-WHERE action_details::json->>'ip' = $1
+WHERE method_details::json->>'ip' = $1
 `
 
-func (q *Queries) CountEventsByIP(ctx context.Context, actionDetails string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countEventsByIP, actionDetails)
+func (q *Queries) CountEventsByIP(ctx context.Context, methodDetails string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countEventsByIP, methodDetails)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -49,30 +49,30 @@ func (q *Queries) CountEventsByUser(ctx context.Context, userID uuid.UUID) (int6
 }
 
 const createUserEvent = `-- name: CreateUserEvent :one
-INSERT INTO user_events(user_id, action, action_details, created_at)
+INSERT INTO user_events(user_id, method, method_details, created_at)
 VALUES (
         $1,
         $2,
         $3,
         Now()
 )
-RETURNING id, user_id, action, action_details, created_at
+RETURNING id, user_id, method, method_details, created_at
 `
 
 type CreateUserEventParams struct {
 	UserID        uuid.UUID
-	Action        string
-	ActionDetails string
+	Method        string
+	MethodDetails string
 }
 
 func (q *Queries) CreateUserEvent(ctx context.Context, arg CreateUserEventParams) (UserEvent, error) {
-	row := q.db.QueryRowContext(ctx, createUserEvent, arg.UserID, arg.Action, arg.ActionDetails)
+	row := q.db.QueryRowContext(ctx, createUserEvent, arg.UserID, arg.Method, arg.MethodDetails)
 	var i UserEvent
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.Action,
-		&i.ActionDetails,
+		&i.Method,
+		&i.MethodDetails,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -90,7 +90,7 @@ func (q *Queries) GetEventCount(ctx context.Context) (int64, error) {
 }
 
 const getEvents = `-- name: GetEvents :many
-SELECT id, user_id, action, action_details, created_at FROM user_events
+SELECT id, user_id, method, method_details, created_at FROM user_events
 ORDER BY created_at DESC
 `
 
@@ -106,8 +106,8 @@ func (q *Queries) GetEvents(ctx context.Context) ([]UserEvent, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -124,13 +124,13 @@ func (q *Queries) GetEvents(ctx context.Context) ([]UserEvent, error) {
 }
 
 const getEventsByAction = `-- name: GetEventsByAction :many
-SELECT id, user_id, action, action_details, created_at FROM user_events
-WHERE action = $1
+SELECT id, user_id, method, method_details, created_at FROM user_events
+WHERE method = $1
 ORDER BY  created_at DESC
 `
 
-func (q *Queries) GetEventsByAction(ctx context.Context, action string) ([]UserEvent, error) {
-	rows, err := q.db.QueryContext(ctx, getEventsByAction, action)
+func (q *Queries) GetEventsByAction(ctx context.Context, method string) ([]UserEvent, error) {
+	rows, err := q.db.QueryContext(ctx, getEventsByAction, method)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +141,8 @@ func (q *Queries) GetEventsByAction(ctx context.Context, action string) ([]UserE
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -159,13 +159,13 @@ func (q *Queries) GetEventsByAction(ctx context.Context, action string) ([]UserE
 }
 
 const getEventsByEndpoint = `-- name: GetEventsByEndpoint :many
-SELECT id, user_id, action, action_details, created_at FROM user_events
-WHERE action_details::json->>'endpoint' = $1
+SELECT id, user_id, method, method_details, created_at FROM user_events
+WHERE method_details::json->>'endpoint' = $1
 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetEventsByEndpoint(ctx context.Context, actionDetails string) ([]UserEvent, error) {
-	rows, err := q.db.QueryContext(ctx, getEventsByEndpoint, actionDetails)
+func (q *Queries) GetEventsByEndpoint(ctx context.Context, methodDetails string) ([]UserEvent, error) {
+	rows, err := q.db.QueryContext(ctx, getEventsByEndpoint, methodDetails)
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +176,8 @@ func (q *Queries) GetEventsByEndpoint(ctx context.Context, actionDetails string)
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -194,13 +194,13 @@ func (q *Queries) GetEventsByEndpoint(ctx context.Context, actionDetails string)
 }
 
 const getEventsByIP = `-- name: GetEventsByIP :many
-SELECT id, user_id, action, action_details, created_at FROM user_events
-WHERE action_details::json->>'ip' = $1
+SELECT id, user_id, method, method_details, created_at FROM user_events
+WHERE method_details::json->>'ip' = $1
 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetEventsByIP(ctx context.Context, actionDetails string) ([]UserEvent, error) {
-	rows, err := q.db.QueryContext(ctx, getEventsByIP, actionDetails)
+func (q *Queries) GetEventsByIP(ctx context.Context, methodDetails string) ([]UserEvent, error) {
+	rows, err := q.db.QueryContext(ctx, getEventsByIP, methodDetails)
 	if err != nil {
 		return nil, err
 	}
@@ -211,8 +211,8 @@ func (q *Queries) GetEventsByIP(ctx context.Context, actionDetails string) ([]Us
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -229,7 +229,7 @@ func (q *Queries) GetEventsByIP(ctx context.Context, actionDetails string) ([]Us
 }
 
 const getEventsByUser = `-- name: GetEventsByUser :many
-SELECT id, user_id, action, action_details, created_at  FROM user_events
+SELECT id, user_id, method, method_details, created_at  FROM user_events
 WHERE user_id = $1
 ORDER BY created_at DESC
 `
@@ -246,8 +246,8 @@ func (q *Queries) GetEventsByUser(ctx context.Context, userID uuid.UUID) ([]User
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -264,7 +264,7 @@ func (q *Queries) GetEventsByUser(ctx context.Context, userID uuid.UUID) ([]User
 }
 
 const getEventsInTimeWindow = `-- name: GetEventsInTimeWindow :many
-SELECT id, user_id, action, action_details, created_at FROM user_events
+SELECT id, user_id, method, method_details, created_at FROM user_events
 WHERE created_at BETWEEN $1 AND $2
 ORDER BY created_at DESC
 `
@@ -286,8 +286,8 @@ func (q *Queries) GetEventsInTimeWindow(ctx context.Context, arg GetEventsInTime
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -304,7 +304,7 @@ func (q *Queries) GetEventsInTimeWindow(ctx context.Context, arg GetEventsInTime
 }
 
 const getLatestEvents = `-- name: GetLatestEvents :many
-SELECT id, user_id, action, action_details, created_at FROM user_events
+SELECT id, user_id, method, method_details, created_at FROM user_events
 ORDER BY created_at DESC
 LIMIT $1
 `
@@ -321,8 +321,8 @@ func (q *Queries) GetLatestEvents(ctx context.Context, limit int32) ([]UserEvent
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -339,7 +339,7 @@ func (q *Queries) GetLatestEvents(ctx context.Context, limit int32) ([]UserEvent
 }
 
 const getLatestEventsByUser = `-- name: GetLatestEventsByUser :many
-SELECT id, user_id, action, action_details, created_at FROM user_events
+SELECT id, user_id, method, method_details, created_at FROM user_events
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2
@@ -362,8 +362,8 @@ func (q *Queries) GetLatestEventsByUser(ctx context.Context, arg GetLatestEvents
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Action,
-			&i.ActionDetails,
+			&i.Method,
+			&i.MethodDetails,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

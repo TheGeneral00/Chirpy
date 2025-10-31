@@ -42,7 +42,7 @@ type User struct {
 type UserEvent struct {
 	ID            int32
 	UserID        uuid.UUID
-	Action        string
-	ActionDetails string
+	Method        string
+	MethodDetails string
 	CreatedAt     sql.NullTime
 }
