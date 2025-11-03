@@ -1,14 +1,16 @@
-package main
+package server
 
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
-        "sort"
 
 	"github.com/TheGeneral00/Chirpy/internal/auth"
 	"github.com/TheGeneral00/Chirpy/internal/database"
+	"github.com/TheGeneral00/Chirpy/internal/helpers"
+	"github.com/TheGeneral00/Chirpy/internal/server"
 	"github.com/google/uuid"
 )
 
@@ -25,7 +27,7 @@ type dbParams struct {
         UserID          uuid.UUID       `json:"user_id"`
 }
 
-func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
+func (cfg *APIConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -34,26 +36,26 @@ func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 	params := parameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return
 	}
 
         token, err := auth.GetBearerToken(r.Header)
         if err != nil {
-                respondWithError(w, http.StatusInternalServerError, "Unable to retrieve token", err)
+                helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to retrieve token", err)
         }
         userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
         if err != nil {
-                respondWithError(w, http.StatusUnauthorized, "Failed to validate token", err)
+                helpers.RespondWithError(w, http.StatusUnauthorized, "Failed to validate token", err)
         }
 
         if userID == uuid.Nil {
-                respondWithError(w, http.StatusUnauthorized, "Token is not valid. Access denied.", nil)
+                helpers.RespondWithError(w, http.StatusUnauthorized, "Token is not valid. Access denied.", nil)
         }
         
 	const maxChirpLength = 140
 	if len(params.Body) > maxChirpLength {
-		respondWithError(w, http.StatusBadRequest, "Chirp is too long", nil)
+		helpers.RespondWithError(w, http.StatusBadRequest, "Chirp is too long", nil)
 		return
 	}
 
@@ -64,14 +66,14 @@ func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
         
         dbChirp, err := cfg.dbQueries.CreateChirp(r.Context(), dbParams)
         if err != nil {
-                respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp in db", err)
+                helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't create chirp in db", err)
                 return 
         }
         chirp := dbChirpToChirp(dbChirp)
-	respondWithJSON(w, http.StatusCreated, chirp)
+	helpers.RespondWithJSON(w, http.StatusCreated, chirp)
 }
 
-func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
+func (cfg *APIConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
         authorID := r.URL.Query().Get("author_id")
         sortDirection := r.URL.Query().Get("sort")
         var dbChirps []database.Chirp
@@ -87,7 +89,7 @@ func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
                 sort.Slice(dbChirps, func(i, j int) bool {return dbChirps[i].CreatedAt.After(dbChirps[j].CreatedAt)})
         }
         if err != nil {
-                respondWithError(w, http.StatusInternalServerError, "Failed to retrieve chirps", err)
+                helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve chirps", err)
                 return
         }
         // Convert database chirps to API chirps with correct JSON field names
@@ -96,29 +98,29 @@ func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
                 chirps = append(chirps, dbChirpToChirp(dbChirp))
         }
             
-            respondWithJSON(w, http.StatusOK, chirps)
+            helpers.RespondWithJSON(w, http.StatusOK, chirps)
 }
 
-func (cfg *apiConfig) handlerGetChirpByID(w http.ResponseWriter, r *http.Request) {
+func (cfg *APIConfig) handlerGetChirpByID(w http.ResponseWriter, r *http.Request) {
         
         idString := r.PathValue("chirpID")
         if idString == "" {
-                respondWithJSON(w, http.StatusOK, Chirp{})
+                helpers.RespondWithJSON(w, http.StatusOK, Chirp{})
                 return
         }
 
         id, err := uuid.Parse(idString)
         if err != nil{
-                respondWithError(w, http.StatusInternalServerError, "unable to parse id", err)
+                helpers.RespondWithError(w, http.StatusInternalServerError, "unable to parse id", err)
         }
 
         dbChirp, err := cfg.dbQueries.GetChirpByID(r.Context(), id)
         if err != nil {
-                respondWithError(w, http.StatusNotFound, "unable to retrieve chirp", err)
+                helpers.RespondWithError(w, http.StatusNotFound, "unable to retrieve chirp", err)
                 return
         }
 
-        respondWithJSON(w, http.StatusOK, dbChirpToChirp(dbChirp))
+        helpers.RespondWithJSON(w, http.StatusOK, dbChirpToChirp(dbChirp))
 }
 
 //This function takes the body of a chirp and scans for profanity. If it finds some it is replaced by four asterix
@@ -150,38 +152,38 @@ func dbChirpToChirp ( dbChirp database.Chirp) Chirp {
         }
 }
 
-func(cfg *apiConfig) handlerDeleteChirp(w http.ResponseWriter, r *http.Request) {
+func(cfg *APIConfig) handlerDeleteChirp(w http.ResponseWriter, r *http.Request) {
         token, err := auth.GetBearerToken(r.Header)
         if err != nil {
-                respondWithError(w, http.StatusUnauthorized, "Unable to retrieve token", err)
+                helpers.RespondWithError(w, http.StatusUnauthorized, "Unable to retrieve token", err)
                 return
         }
         userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
         if err != nil {
-                respondWithError(w, http.StatusUnauthorized, "Token not valid", err)
+                helpers.RespondWithError(w, http.StatusUnauthorized, "Token not valid", err)
                 return
         }
 
         chirpIDString:= r.PathValue("chirpID")
         if chirpIDString == "" {
-                respondWithError(w, http.StatusNotFound, "No chirp found to given id", nil)
+                helpers.RespondWithError(w, http.StatusNotFound, "No chirp found to given id", nil)
                 return
         }
         chirpID, err := uuid.Parse(chirpIDString) 
         if err != nil {
-                respondWithError(w, http.StatusInternalServerError, "Failed to Parse id string", err)
+                helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to Parse id string", err)
                 return
         }
         chirp, err := cfg.dbQueries.GetChirpByID(r.Context(), chirpID)
         if chirp.UserID != userID {
-                respondWithError(w, http.StatusForbidden, "This is not your chirp", nil)
+                helpers.RespondWithError(w, http.StatusForbidden, "This is not your chirp", nil)
                 return
         }
         _, err = cfg.dbQueries.DeleteChrip(r.Context(), chirpID)
         if err != nil {
-                respondWithError(w, http.StatusNotFound, "Unable to delete chirp", err)
+                helpers.RespondWithError(w, http.StatusNotFound, "Unable to delete chirp", err)
                 return
         }
-        respondWithJSON(w, http.StatusNoContent, nil)
+        helpers.RespondWithJSON(w, http.StatusNoContent, nil)
 }
 

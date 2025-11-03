@@ -100,10 +100,10 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
         mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUserCredentials)
         mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerPolkaWebhooks)
-	//mux.HandleFunc("Get /api/events", apiCfg.handlerGetAllEvents)
-	//mux.HandleFunc("Get /api/events/latest", apiCfg.handlerGetLatestEvents)
-	//mux.HandleFunc("Get /api/events/user/{userID}", apiCfg.handlerGetEventsByUser)
-	//mux.HandleFunc("Get /api/events/method/{method}", apiCfg.handlerGetEventsByMethod)
+	mux.HandleFunc("Get /api/events", apiCfg.handlerGetAllEvents)
+	mux.HandleFunc("Get /api/events/latest", apiCfg.handlerGetLatestEvents)
+	mux.HandleFunc("Get /api/events/user/{userID}", apiCfg.handlerGetEventsByUser)
+	mux.HandleFunc("Get /api/events/method/{method}", apiCfg.handlerGetEventsByMethod)
 	mux.HandleFunc("Post /api/events/reset", apiCfg.handlerResetEvents)
 
 	srv := &http.Server{
