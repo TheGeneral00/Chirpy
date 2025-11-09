@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/TheGeneral00/Chirpy/internal/auth"
+	"github.com/TheGeneral00/Chirpy/internal/helpers"
 	"github.com/google/uuid"
 )
 
@@ -18,11 +19,11 @@ type webhookRequest struct{
 func (cfg *apiConfig) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Request){
         ApiKey, err := auth.GetAPIKey(r.Header)
         if err != nil {
-                respondWithError(w, http.StatusUnauthorized, "Failed to retrive ApiKey", err)
+                helpers.RespondWithError(w, http.StatusUnauthorized, "Failed to retrive ApiKey", err)
                 return
         }
         if ApiKey != cfg.polkaKey {
-                respondWithError(w, http.StatusUnauthorized, "API key mismatch", nil)
+                helpers.RespondWithError(w, http.StatusUnauthorized, "API key mismatch", nil)
                 return
         }
 
@@ -30,19 +31,19 @@ func (cfg *apiConfig) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Reques
         var params webhookRequest
         err = decoder.Decode(&params)
         if err != nil{
-                respondWithError(w, http.StatusInternalServerError, "Failed to add user", err)
+                helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to add user", err)
                 return
         }
         if params.Event != "user.upgraded"{
-                respondWithError(w, http.StatusNoContent, "Requested event not supported", err)
+                helpers.RespondWithError(w, http.StatusNoContent, "Requested event not supported", err)
                 return
         }
         userID := uuid.MustParse(params.Data.UserID)
         
         err = cfg.dbQueries.UpgradeToRed(r.Context(), userID)
         if err != nil {
-                respondWithError(w, http.StatusNotFound, "Failed to upgrade user", err)
+                helpers.RespondWithError(w, http.StatusNotFound, "Failed to upgrade user", err)
                 return
         }
-        respondWithJSON(w, http.StatusNoContent, nil)
+        helpers.RespondWithJSON(w, http.StatusNoContent, nil)
 }

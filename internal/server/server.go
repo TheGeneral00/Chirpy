@@ -10,15 +10,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type APIConfig struct {
-	FileserverHits atomic.Int32
-	DBQueries      *database.Queries
-	JWTSecret      string
-	PolkaKey       string
+type apiConfig struct {
+	fileserverHits atomic.Int32
+	dbQueries      *database.Queries
+	jwtSecret      string
+	polkaKey       string
 }
 
 // Middleware to create user event
-func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
+func (cfg *apiConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Header.Get("X-User-ID")
 		method := r.Method
@@ -32,7 +32,7 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 			return
 		}
 
-		cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
+		cfg.dbQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
 			UserID:        userUUID,
 			Method:        method,
 			MethodDetails: details,
@@ -41,15 +41,15 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 }
 
 // Middleware to count server hits
-func (cfg *APIConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
+func (cfg *apiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cfg.FileserverHits.Add(1)
+		cfg.fileserverHits.Add(1)
 		next.ServeHTTP(w, r)
 	})
 }
 
 // New builds the HTTP server
-func New(cfg *APIConfig, filepathRoot, port string) *http.Server {
+func New(cfg *apiConfig, filepathRoot, port string) *http.Server {
 	mux := http.NewServeMux()
 
 	// File server with middlewares
@@ -57,15 +57,15 @@ func New(cfg *APIConfig, filepathRoot, port string) *http.Server {
 	mux.Handle("/app/", fsHandler)
 
 	// Routes
-	mux.HandleFunc("/api/healthz", HandlerReadiness)
-	mux.HandleFunc("/api/chirps", cfg.HandlerAddChirp)
-	mux.HandleFunc("/api/users", cfg.HandlerAddUser)
-	mux.HandleFunc("/api/login", cfg.HandlerLogin)
-	mux.HandleFunc("/api/revoke", cfg.HandlerRevoke)
-	mux.HandleFunc("/api/refresh", cfg.HandlerRefresh)
-	mux.HandleFunc("/admin/reset", cfg.HandlerReset)
-	mux.HandleFunc("/admin/metrics", cfg.HandlerMetrics)
-	mux.HandleFunc("/api/polka/webhooks", cfg.HandlerPolkaWebhooks)
+	mux.HandleFunc("/api/healthz", handlerReadiness)
+	mux.HandleFunc("/api/chirps", cfg.handlerAddChirp)
+	mux.HandleFunc("/api/users", cfg.handlerAddUser)
+	mux.HandleFunc("/api/login", cfg.handlerLogin)
+	mux.HandleFunc("/api/revoke", cfg.handlerRevoke)
+	mux.HandleFunc("/api/refresh", cfg.handlerRefresh)
+	mux.HandleFunc("/admin/reset", cfg.handlerReset)
+	mux.HandleFunc("/admin/metrics", cfg.handlerMetrics)
+	mux.HandleFunc("/api/polka/webhooks", cfg.handlerPolkaWebhooks)
 	//mux.HandleFunc("Get /api/events", apiCfg.handlerGetAllEvents)
 	//mux.HandleFunc("Get /api/events/latest", apiCfg.handlerGetLatestEvents)
 	//mux.HandleFunc("Get /api/events/user/{userID}", apiCfg.handlerGetEventsByUser)

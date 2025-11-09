@@ -10,7 +10,6 @@ import (
 	"github.com/TheGeneral00/Chirpy/internal/auth"
 	"github.com/TheGeneral00/Chirpy/internal/database"
 	"github.com/TheGeneral00/Chirpy/internal/helpers"
-	"github.com/TheGeneral00/Chirpy/internal/server"
 	"github.com/google/uuid"
 )
 
@@ -27,7 +26,7 @@ type dbParams struct {
         UserID          uuid.UUID       `json:"user_id"`
 }
 
-func (cfg *APIConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -73,7 +72,7 @@ func (cfg *APIConfig) handlerAddChirp(w http.ResponseWriter, r *http.Request) {
 	helpers.RespondWithJSON(w, http.StatusCreated, chirp)
 }
 
-func (cfg *APIConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
         authorID := r.URL.Query().Get("author_id")
         sortDirection := r.URL.Query().Get("sort")
         var dbChirps []database.Chirp
@@ -101,7 +100,7 @@ func (cfg *APIConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
             helpers.RespondWithJSON(w, http.StatusOK, chirps)
 }
 
-func (cfg *APIConfig) handlerGetChirpByID(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerGetChirpByID(w http.ResponseWriter, r *http.Request) {
         
         idString := r.PathValue("chirpID")
         if idString == "" {
@@ -152,7 +151,7 @@ func dbChirpToChirp ( dbChirp database.Chirp) Chirp {
         }
 }
 
-func(cfg *APIConfig) handlerDeleteChirp(w http.ResponseWriter, r *http.Request) {
+func(cfg *apiConfig) handlerDeleteChirp(w http.ResponseWriter, r *http.Request) {
         token, err := auth.GetBearerToken(r.Header)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "Unable to retrieve token", err)
