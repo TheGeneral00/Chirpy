@@ -21,7 +21,7 @@ type ResponseWithToken struct {
         IsChirpyRed bool `json:"is_chirpy_red"`
 }
 
-func (cfg *apiConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
+func (cfg *APIConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
 
         decoder := json.NewDecoder(r.Body)
         var params UserRequestParameters

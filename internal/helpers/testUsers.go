@@ -1,10 +1,14 @@
 package helpers
 
-import()
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+)
 
 type TestUser struct {
-	Email string
-	Password string
+	Email string `json:"email"`
+	Password string `json:"password"`
 }
 
 func LoadTestUsers() []TestUser{
@@ -42,4 +46,24 @@ func LoadTestUsers() []TestUser{
         {"trailing@example.com ", "spaceEnd"},
         {"invisible\u200b@example.com", "zeroWidth"},
 	}
+}
+
+func LoadTestUsersJSON() ([]byte, error) {
+	users := LoadTestUsers()
+	return json.MarshalIndent(users, "", " ")
+}
+
+func LoadTestUsersBodies() ([]io.Reader, error) {
+	users := LoadTestUsers()
+	bodies := make([]io.Reader, 0, len(users))
+
+	for _, u := range users {
+		jsonBytes, err := json.Marshal(u)
+		if err != nil {
+			return nil, err
+		}
+		bodies = append(bodies, bytes.NewReader(jsonBytes))
+	}
+
+	return bodies, nil
 }

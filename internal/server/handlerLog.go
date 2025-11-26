@@ -8,8 +8,8 @@ import (
 )
 
 
-func initializeLogger() (*os.File, error) {
-        logFile, err := os.OpenFile("server_log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+func initializeLogger(file string) (*os.File, error) {
+        logFile, err := os.OpenFile(fmt.Sprintf("%s.txt", file), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
         if err != nil {
                 return nil, fmt.Errorf("Failed to open log file: %v", err)
         }

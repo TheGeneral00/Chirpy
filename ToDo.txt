@@ -1,0 +1,5 @@
+This is a ToDo list like the name says. Add things in order of priority. Thx future Richard ;)
+
+1. Test and expend CreateUserEvent tests
+2. Create InputValidation test. Focus on sanitization of sql injection ans js
+

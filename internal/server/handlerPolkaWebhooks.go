@@ -16,7 +16,7 @@ type webhookRequest struct{
         } `json:"data"` 
 }
 
-func (cfg *apiConfig) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Request){
+func (cfg *APIConfig) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Request){
         ApiKey, err := auth.GetAPIKey(r.Header)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "Failed to retrive ApiKey", err)

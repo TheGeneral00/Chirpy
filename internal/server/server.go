@@ -8,15 +8,15 @@ import (
 	"github.com/TheGeneral00/Chirpy/internal/database"
 )
 
-type apiConfig struct {
-	fileserverHits atomic.Int32
-	dbQueries      *database.Queries
-	jwtSecret      string
-	polkaKey       string
+type APIConfig struct {
+	FileserverHits atomic.Int32
+	DBQueries      *database.Queries
+	JWTSecret      string
+	PolkaKey       string
 }
 
 // New builds the HTTP server
-func New(cfg *apiConfig, filepathRoot, port string) *http.Server {
+func New(cfg *APIConfig, filepathRoot, port string) *http.Server {
 	mux := http.NewServeMux()
 
 	// File server with middlewares

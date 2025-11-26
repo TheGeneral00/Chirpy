@@ -6,7 +6,7 @@ import (
 	"github.com/TheGeneral00/Chirpy/internal/helpers"
 )
 
-func (cfg *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
+func (cfg *APIConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
 	cfg.fileserverHits.Store(0)
         err := cfg.dbQueries.ResetUsers(r.Context())
         if err != nil {

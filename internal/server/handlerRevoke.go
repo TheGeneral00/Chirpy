@@ -7,7 +7,7 @@ import (
 	"github.com/TheGeneral00/Chirpy/internal/helpers"
 )
 
-func(cfg *apiConfig) handlerRevoke(w http.ResponseWriter, r *http.Request) {
+func(cfg *APIConfig) handlerRevoke(w http.ResponseWriter, r *http.Request) {
         TokenString, err := auth.GetBearerToken(r.Header)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "No token supplied", err)

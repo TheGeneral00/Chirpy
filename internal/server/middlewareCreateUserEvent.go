@@ -8,7 +8,7 @@ import (
 )
 
 // Middleware to create user event
-func (cfg *apiConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
+func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Header.Get("X-User-ID")
 		method := r.Method
@@ -22,7 +22,7 @@ func (cfg *apiConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 			return
 		}
 
-		cfg.dbQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
+		cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
 			UserID:        userUUID,
 			Method:        method,
 			MethodDetails: details,

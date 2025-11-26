@@ -13,7 +13,7 @@ type RefreshRequest struct{
         Token string `json:"token"`
 }
 
-func(cfg *apiConfig) handlerRefresh(w http.ResponseWriter, r *http.Request){
+func(cfg *APIConfig) handlerRefresh(w http.ResponseWriter, r *http.Request){
         TokenString, _ := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
         if TokenString == "" {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "No token string received", nil)

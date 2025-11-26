@@ -41,7 +41,7 @@ func main() {
 	apiCfg := server.APIConfig{
 		DBQueries: dbQueries,
 		JWTSecret: jwtSecret,
-		PolkaKey:  polkaKey,
+		PolkaKey: polkaKey,
 	}
 
 	const port = "8080"

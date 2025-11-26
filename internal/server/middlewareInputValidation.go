@@ -20,7 +20,7 @@ var headersToCheck = []string {
 	"User", "Username", "X-User", "Authorization", "Proxy-Authorization",
 }
 
-func (cfg *apiConfig) InputSanatizer(next http.Handler) http.Handler {
+func (cfg *APIConfig) InputSanatizer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//Check headers 
 		for _, hn := range headersToCheck {
