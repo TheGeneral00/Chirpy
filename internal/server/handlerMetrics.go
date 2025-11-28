@@ -17,5 +17,5 @@ func (cfg *APIConfig) handlerMetrics(w http.ResponseWriter, r *http.Request) {
 </body>
 
 </html>
-	`, cfg.fileserverHits.Load())))
+	`, cfg.FileserverHits.Load())))
 }

@@ -22,7 +22,7 @@ func (cfg *APIConfig) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Reques
                 helpers.RespondWithError(w, http.StatusUnauthorized, "Failed to retrive ApiKey", err)
                 return
         }
-        if ApiKey != cfg.polkaKey {
+        if ApiKey != cfg.PolkaKey {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "API key mismatch", nil)
                 return
         }
@@ -40,7 +40,7 @@ func (cfg *APIConfig) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Reques
         }
         userID := uuid.MustParse(params.Data.UserID)
         
-        err = cfg.dbQueries.UpgradeToRed(r.Context(), userID)
+        err = cfg.DBQueries.UpgradeToRed(r.Context(), userID)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusNotFound, "Failed to upgrade user", err)
                 return

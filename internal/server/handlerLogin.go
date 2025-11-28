@@ -31,7 +31,7 @@ func (cfg *APIConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
                 return
         }
 
-        user, err := cfg.dbQueries.GetUserByEmail(r.Context(), params.Email)
+        user, err := cfg.DBQueries.GetUserByEmail(r.Context(), params.Email)
         if err != nil{
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve user from database", err)
                 return
@@ -48,7 +48,7 @@ func (cfg *APIConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create jwt token", err)
                 return
         }
-        jwt, err := auth.MakeJWT(user.ID, cfg.jwtSecret, jwtExpTime)
+        jwt, err := auth.MakeJWT(user.ID, cfg.JWTSecret, jwtExpTime)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create jwt token", err)
                 return
@@ -69,7 +69,7 @@ func (cfg *APIConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
                 Token: refreshToken,
                 ExpiresAt: time.Now().Add(refreshTokenExpTime),
         }
-        _, err = cfg.dbQueries.CreateRefreshToken(r.Context(), refreshTokenParams)
+        _, err = cfg.DBQueries.CreateRefreshToken(r.Context(), refreshTokenParams)
 
         responseStruct := ResponseWithToken{
                 ID: user.ID,

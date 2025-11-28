@@ -49,7 +49,7 @@ func (cfg *APIConfig) handlerAddUser (w http.ResponseWriter, r *http.Request){
                 Email: params.Email,
                 HashedPassword: hashedPassword, 
         }
-        user, err := cfg.dbQueries.CreateUser(r.Context(), dbParams)
+        user, err := cfg.DBQueries.CreateUser(r.Context(), dbParams)
         if err != nil{
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to add user", err)
                 return
@@ -74,7 +74,7 @@ func(cfg *APIConfig) handlerUpdateUserCredentials(w http.ResponseWriter, r *http
                 helpers.RespondWithError(w, http.StatusUnauthorized, "No Token retrieved", err)
                 return
         }
-        userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
+        userID, err := auth.ValidateJWT(token, cfg.JWTSecret)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "Token not valid", err)
                 return
@@ -100,7 +100,7 @@ func(cfg *APIConfig) handlerUpdateUserCredentials(w http.ResponseWriter, r *http
                 HashedPassword: hashedPassword,
         }
         
-        newUserCredentials, err := cfg.dbQueries.UpdateUserCredentials(r.Context(), newUserParams)
+        newUserCredentials, err := cfg.DBQueries.UpdateUserCredentials(r.Context(), newUserParams)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to update user credentials", err)
                 return

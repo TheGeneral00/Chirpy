@@ -13,6 +13,6 @@ func(cfg *APIConfig) handlerRevoke(w http.ResponseWriter, r *http.Request) {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "No token supplied", err)
                 return
         }
-        cfg.dbQueries.RevokeRefreshToken(r.Context(), TokenString)
+        cfg.DBQueries.RevokeRefreshToken(r.Context(), TokenString)
         helpers.RespondWithJSON(w, http.StatusNoContent, nil)
 }

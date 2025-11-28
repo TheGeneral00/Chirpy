@@ -19,7 +19,7 @@ func(cfg *APIConfig) handlerRefresh(w http.ResponseWriter, r *http.Request){
                 helpers.RespondWithError(w, http.StatusUnauthorized, "No token string received", nil)
                 return
         }
-        token, err := cfg.dbQueries.RetrieveRefreshToken(r.Context(), TokenString)
+        token, err := cfg.DBQueries.RetrieveRefreshToken(r.Context(), TokenString)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusUnauthorized, "Refresh token unknown", err)
                 return
@@ -33,6 +33,6 @@ func(cfg *APIConfig) handlerRefresh(w http.ResponseWriter, r *http.Request){
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create jwt token", err)
                 return
         }
-        newJWT, err := auth.MakeJWT(token.UserID, cfg.jwtSecret, expTime)
+        newJWT, err := auth.MakeJWT(token.UserID, cfg.JWTSecret, expTime)
         helpers.RespondWithJSON(w, http.StatusOK, RefreshRequest{Token: newJWT})
 }
