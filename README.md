@@ -25,3 +25,4 @@ This list shows all features that are currently und developement. It is not excl
 
 - tesing kit for user event logging 
 - testing kit for input sanitization
+- add a basic webinterface
