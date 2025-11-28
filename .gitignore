@@ -1,3 +1,4 @@
 out
 server_log.txt
 .env
+bin/
