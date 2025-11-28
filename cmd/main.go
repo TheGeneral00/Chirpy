@@ -9,6 +9,7 @@ import (
 	"github.com/TheGeneral00/Chirpy/internal/database"
 	"github.com/TheGeneral00/Chirpy/internal/server"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func main() {
