@@ -14,18 +14,24 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 		method := r.Method
 		details := r.URL.Path
 
-		next.ServeHTTP(w, r)
-
 		userUUID, err := uuid.Parse(userId)
+
 		if err != nil {
 			helpers.RespondWithError(w, http.StatusBadRequest, "Invalid or missing X-User-ID", err)
 			return
 		}
 
-		cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
+		_, err = cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
 			UserID:        userUUID,
 			Method:        method,
 			MethodDetails: details,
 		})
+		if err != nil {
+			cfg.Logger.Error.Printf("Failed to store user event: %v", err)
+		} else {
+			cfg.Logger.Info.Printf("UserID: %v Method: %v URL: %v", userId, method, details)
+		}
+		next.ServeHTTP(w, r)
+
 	})
 }

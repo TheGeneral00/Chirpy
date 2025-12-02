@@ -10,9 +10,10 @@ import (
 
 type APIConfig struct {
 	FileserverHits atomic.Int32
-	DBQueries      *database.Queries
-	JWTSecret      string
-	PolkaKey       string
+	DBQueries      	*database.Queries
+	JWTSecret      	string
+	PolkaKey       	string
+	Logger		*Logger
 }
 
 // New builds the HTTP server

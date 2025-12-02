@@ -2,10 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
 	"os"
-
+	"log"
 	"github.com/TheGeneral00/Chirpy/internal/database"
 	"github.com/TheGeneral00/Chirpy/internal/server"
 	"github.com/joho/godotenv"
@@ -13,13 +11,19 @@ import (
 )
 
 func main() {
-	// Start logging
-	logFile, err := server.InitializeLogger()
+	//Start up logger to write user events and responses
+	logger, eventFile, err := server.NewLog()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
-	defer logFile.Close()
+	defer eventFile.Close()
+
+	//Modify std log module to write to stdout and errors.log 
+	errFile, err := server.InitStdLogger()
+	if err != nil {
+		panic(err)
+	}
+	defer errFile.Close()
 
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
@@ -43,6 +47,7 @@ func main() {
 		DBQueries: dbQueries,
 		JWTSecret: jwtSecret,
 		PolkaKey: polkaKey,
+		Logger: logger,
 	}
 
 	const port = "8080"
@@ -50,8 +55,7 @@ func main() {
 
 	// Create server
 	srv := server.New(&apiCfg, filepathRoot, port)
-
-	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
+	logger.Info.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
 }
 

@@ -2,3 +2,5 @@ out
 server_log.txt
 .env
 bin/
+json/
+logs/
