@@ -1,4 +1,4 @@
-# Chirpy
+# PostalWarden
 
 This project is aimed to be a training and resume project. In no way is it meant for open source or comercial use. If you choose otherwise there is no guaranty for continous maintainment of the program or proper functionality.
 
