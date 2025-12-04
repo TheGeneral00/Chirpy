@@ -4,19 +4,19 @@
 
 | Done | Priority | Feature | Description |
 |------|----------|---------|-------------|
-| [ ] | 5 | [Folder structure](#folder-structure) | Base project layout and module separation |
-| [ ] | 5 | [Config system](#config-system) | Central configuration with env & file support |
-| [ ] | 5 | [JWT auth](#jwt-auth) | Secure authentication with tokens |
+| [x] | 5 | [Folder structure](#folder-structure) | Base project layout and module separation |
+| [x] | 5 | [Config system](#config-system) | Central configuration with env & file support |
+| [x] | 5 | [JWT auth](#jwt-auth) | Secure authentication with tokens |
 | [ ] | 5 | [Routing setup](#routing-setup) | Router initialization, groups, middleware |
-| [ ] | 5 | [DB migrations](#db-migrations) | Versioned schema management |
+| [x] | 5 | [DB migrations](#db-migrations) | Versioned schema management |
 | [ ] | 5 | [Panic recovery middleware](#panic-recovery-middleware) | Prevent server crashes, return safe errors |
 | [ ] | 5 | [Structured logging](#structured-logging) | Consistent, machine-parseable logs |
 | [ ] | 5 | [Central error handling](#central-error-handling) | Unified error responses & wrapping |
 | [ ] | 5 | [README](#readme) | Root documentation |
 | [ ] | 4 | [Request validation](#request-validation) | Input checking & sanitization |
-| [ ] | 4 | [Request logging middleware](#request-logging-middleware) | Per-request log details |
+| [x] | 4 | [Request logging middleware](#request-logging-middleware) | Per-request log details |
 | [ ] | 4 | [Correlation ID middleware](#correlation-id-middleware) | Trace requests end-to-end |
-| [ ] | 4 | [File log output](#file-log-output) | Redirect logs to files |
+| [x] | 4 | [File log output](#file-log-output) | Redirect logs to files |
 | [ ] | 4 | [DB event logging](#db-event-logging) | Write user events to database |
 | [ ] | 4 | [App error types](#app-error-types) | Custom domain error structures |
 | [ ] | 4 | [Linters](#linters) | golangci-lint baseline |
