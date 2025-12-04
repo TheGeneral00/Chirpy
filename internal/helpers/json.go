@@ -33,5 +33,4 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	}
 	w.WriteHeader(code)
 	w.Write(data)
-	log.Printf("Responded with code: %v and data: %v", code, data)
 }
