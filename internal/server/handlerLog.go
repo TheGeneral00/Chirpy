@@ -8,7 +8,8 @@ import (
 
 type Logger struct {
 	Info *log.Logger
-	Error *log.Logger
+	Warning +log.Logger 
+	Failure *log.Logger
 }
 
 func NewLog() (*Logger, *os.File, error) {
@@ -27,7 +28,8 @@ func NewLog() (*Logger, *os.File, error) {
 	
 	l := &Logger{
 		Info: log.New(multi, "Info: ", log.LstdFlags|log.Lmicroseconds),
-		Error: log.New(multi, "Error: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile),
+		Warning: log.New(multi, "Warning: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile),
+		Failure: log.New(multi, "Failure: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile),
 	}
 
 	l.Info.Println("Logger initialized.")

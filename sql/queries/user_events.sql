@@ -6,7 +6,7 @@ VALUES (
         $3,
         Now()
 )
-RETURNING *;
+RETURNING id;
 
 -- name: ResetEvents :exec
 TRUNCATE TABLE user_events RESTART IDENTITY;
@@ -65,3 +65,22 @@ SELECT * FROM user_events
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2;
+
+-- name: GetState :one
+SELECT state FROM user_events
+WHERE id = $1;
+
+-- name: SetStatePending :exec 
+UPDATE user_events
+SET state = 'Pending'
+WHERE id = $1;
+
+-- name: SetStateSuccess :exec
+UPDATE user_events 
+SET state = 'Success'
+WHERE id = $1;
+
+-- name: SetStateFailure :exec
+UPDATE user_events
+SET state = 'Failure'
+WHERE id = $1;

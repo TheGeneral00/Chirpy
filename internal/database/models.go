@@ -45,4 +45,5 @@ type UserEvent struct {
 	Method        string
 	MethodDetails string
 	CreatedAt     sql.NullTime
+	State         sql.NullString
 }
