@@ -2,9 +2,9 @@
 
 This project is aimed to be a training and resume project. In no way is it meant for open source or comercial use. If you choose otherwise there is no guaranty for continous maintainment of the program or proper functionality.
 
-## What is Chirpy supposed to become?
+## What is PostalWarden supposed to become?
 
-Chirpy is meant to be a go server with the basic functionality a server should offer, including but not exclusivly, user event login and management, statistics and dashboards. Futher is Chirpy aimed at email management. It should mimic how large scale mail management software handles distribution, receiving and filtering.
+PostalWarden is meant to be a go server with the basic functionality a server should offer, including but not exclusivly, user event login and management, statistics and dashboards. Futher is PostalWarden aimed at email management. It should mimic how large scale mail management software handles distribution, receiving and filtering.
 
 ## Features planed
 
