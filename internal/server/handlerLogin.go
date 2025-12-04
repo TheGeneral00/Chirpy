@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -22,8 +23,11 @@ type ResponseWithToken struct {
 }
 
 func (cfg *APIConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
-
-        decoder := json.NewDecoder(r.Body)
+	
+	eventID := r.Context().Value(eventIDKey)
+	eventIDVal := assertEventID(eventID)	
+        
+	decoder := json.NewDecoder(r.Body)
         var params UserRequestParameters
         err := decoder.Decode(&params)
         if err != nil{
@@ -34,34 +38,42 @@ func (cfg *APIConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
         user, err := cfg.DBQueries.GetUserByEmail(r.Context(), params.Email)
         if err != nil{
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve user from database", err)
+		cfg.LogFailure(eventIDVal, err)
                 return
         }
 
         err = auth.CheckPasswordHash([]byte(user.HashedPassword), params.Password)
         if err != nil{
                 helpers.RespondWithError(w, http.StatusUnauthorized, "Incorrect email or password", nil)
+		cfg.LogFailure(eventIDVal, err)
                 return
         }
 
         jwtExpTime, err := time.ParseDuration("1h")
         if err != nil {
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create jwt token", err)
+		cfg.LogFailure(eventIDVal, err)
                 return
         }
         jwt, err := auth.MakeJWT(user.ID, cfg.JWTSecret, jwtExpTime)
         if err != nil {
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create jwt token", err)
+		cfg.LogFailure(eventIDVal, err)
+		log.Printf("Failed to create JWT token for Event: %d with error: %v", eventIDVal, err)
                 return
         }
 
         refreshTokenExpTime, err := time.ParseDuration("1440h")
         if err != nil {
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create refresh token", err)
+		cfg.LogFailure(eventIDVal, err)
                 return
         }
         refreshToken, err := auth.MakeRefreshToken()
         if err != nil {
                 helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create refresh token", err)
+		cfg.LogFailure(eventIDVal, err)
+		log.Printf("Failed to create refresh token for Event: %d with error: %v", eventIDVal, err)
                 return
         }
         refreshTokenParams := database.CreateRefreshTokenParams{
@@ -80,6 +92,6 @@ func (cfg *APIConfig) handlerLogin (w http.ResponseWriter, r *http.Request){
                 RefreshToken: refreshToken,
                 IsChirpyRed: user.IsChirpyRed,
         }
-
+	cfg.LogSuccess(eventIDVal)
         helpers.RespondWithJSON(w, http.StatusOK, responseStruct)
 }

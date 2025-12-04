@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"io"
 	"log"
 	"os"
@@ -8,7 +9,7 @@ import (
 
 type Logger struct {
 	Info *log.Logger
-	Warning +log.Logger 
+	Warning *log.Logger 
 	Failure *log.Logger
 }
 
@@ -59,6 +60,22 @@ func InitStdLogger() (*os.File, error) {
 
 	return logFile, nil
 }
+
+func (cfg *APIConfig) LogSuccess(eventID int32) {
+	cfg.Logger.Info.Printf("Event %d terminated successfully.", eventID)
+	cfg.DBQueries.SetStateSuccess(context.Background(), eventID)
+}
+
+func (cfg *APIConfig) LogFailure(eventID int32, err error) {
+	cfg.Logger.Failure.Printf("Event %d failed with error: %v", eventID, err)
+	cfg.DBQueries.SetStateFailure(context.Background(), eventID)
+}
+
+func (cfg *APIConfig) LogWarning(eventID int32, message string) {
+	cfg.Logger.Warning.Printf("Event %d Message: %s", eventID, message)
+	cfg.DBQueries.SetStateSuccess(context.Background(), eventID)
+}
+
 
 
 /*func initializeLogger(file string) (*os.File, error) {

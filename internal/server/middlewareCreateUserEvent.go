@@ -2,12 +2,17 @@ package server
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/TheGeneral00/Chirpy/internal/database"
 	"github.com/TheGeneral00/Chirpy/internal/helpers"
 	"github.com/google/uuid"
 )
+
+type contextKey string
+
+const eventIDKey contextKey = "eventID"
 
 // Middleware to create user event
 func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
@@ -34,9 +39,23 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 			cfg.Logger.Info.Printf("UserID: %v Method: %v URL: %v", userId, method, details)
 		}
 
-		ctx := context.WithValue(r.Context(), eventID, eventID)
+		ctx := context.WithValue(r.Context(), eventIDKey, eventID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func assertEventID(eventID any) int32 {
+	if eventID == nil {
+		log.Println("No eventID in context.")
+		return 0
+	}
+
+	eventIDVal, ok := eventID.(int32); 
+	if !ok {
+		log.Println("eventID is not of type int") 
+		return 0
+	}
+	return eventIDVal
 }

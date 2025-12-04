@@ -55,7 +55,7 @@ func main() {
 
 	// Create server
 	srv := server.New(&apiCfg, filepathRoot, port)
-	logger.Info.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
+	logger.Info.Printf("Serving files from %s:%s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
 }
 
