@@ -26,3 +26,5 @@ This list shows all features that are currently und developement. It is not excl
 - tesing kit for user event logging 
 - testing kit for input sanitization
 - add a basic webinterface
+
+To see all planed features with a priority rating [see the project ToDo](ToDo.md)
