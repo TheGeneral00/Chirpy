@@ -1,0 +1,3 @@
+- chi Router
+- RequestID generation and tracking
+- Adjust the userEvents to be tracked via RequestID and not corelated via the userID(Causes complication if userID is not existent)

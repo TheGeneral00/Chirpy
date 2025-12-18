@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/TheGeneral00/Chirpy/internal/database"
-	"github.com/TheGeneral00/Chirpy/internal/helpers"
 	"github.com/google/uuid"
 )
 
@@ -24,8 +23,7 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 		userUUID, err := uuid.Parse(userId)
 
 		if err != nil {
-			helpers.RespondWithError(w, http.StatusBadRequest, "Invalid or missing X-User-ID", err)
-			return
+			cfg.Logger.Info.Printf("Invalid or missing X-User-ID: %v.\n", err)
 		}
 
 		eventID, err := cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
