@@ -17,6 +17,7 @@ func main() {
 		panic(err)
 	}
 	defer eventFile.Close()
+	logger.Info.Printf("Server log up and running.")
 
 	//Modify std log module to write to stdout and errors.log 
 	errFile, err := server.ErrorLog()
@@ -24,6 +25,7 @@ func main() {
 		panic(err)
 	}
 	defer errFile.Close()
+	logger.Info.Printf("Error log up and running.")
 
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {

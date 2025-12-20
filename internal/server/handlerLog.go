@@ -56,7 +56,7 @@ func ErrorLog() (*os.File, error) {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 
 	//Optional: initial log entry
-	log.Println("Standard logger initialized")
+	//log.Println("Error logger initialized")
 
 	return logFile, nil
 }
