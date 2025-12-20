@@ -1,12 +1,14 @@
 -- name: CreateUserEvent :one
-INSERT INTO user_events(user_id, method, method_details, created_at)
+INSERT INTO user_events(request_id, event_seq, user_id, method, method_details, created_at)
 VALUES (
         $1,
         $2,
         $3,
+        $4,
+        $5,
         Now()
 )
-RETURNING id;
+RETURNING request_id;
 
 -- name: ResetEvents :exec
 TRUNCATE TABLE user_events RESTART IDENTITY;
@@ -68,19 +70,19 @@ LIMIT $2;
 
 -- name: GetState :one
 SELECT state FROM user_events
-WHERE id = $1;
+WHERE request_id = $1;
 
 -- name: SetStatePending :exec 
 UPDATE user_events
 SET state = 'Pending'
-WHERE id = $1;
+WHERE request_id = $1;
 
 -- name: SetStateSuccess :exec
 UPDATE user_events 
 SET state = 'Success'
-WHERE id = $1;
+WHERE request_id = $1;
 
 -- name: SetStateFailure :exec
 UPDATE user_events
 SET state = 'Failure'
-WHERE id = $1;
+WHERE request_id = $1;

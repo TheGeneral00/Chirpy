@@ -40,8 +40,9 @@ type User struct {
 }
 
 type UserEvent struct {
-	ID            int32
-	UserID        uuid.UUID
+	RequestID     uuid.UUID
+	EventSeq      int32
+	UserID        uuid.NullUUID
 	Method        string
 	MethodDetails string
 	CreatedAt     sql.NullTime

@@ -18,7 +18,8 @@ type APIConfig struct {
 
 func New(cfg *APIConfig, filepathRoot, port string) *http.Server{
 	r := chi.NewRouter()
-
+	
+	r.Use(middlewareCreateRequestID)
 	r.Use(cfg.InputSanatizer)
 	r.Use(cfg.MiddlewareMetricsInc)
 	r.Use(cfg.MiddlewareCreateUserEvent)

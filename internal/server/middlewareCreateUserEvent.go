@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -9,9 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type contextKey string
 
-const eventIDKey contextKey = "eventID"
 
 // Middleware to create user event
 func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
@@ -20,16 +17,33 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 		method := r.Method
 		details := r.URL.Path
 
-		userUUID, err := uuid.Parse(userId)
+		var userUUID uuid.NullUUID
 
+		if userId != "" {
+			parsed, err := uuid.Parse(userId)
+			if err != nil {
+				cfg.Logger.Info.Printf("Invlid X-User-ID: %v\n", err)
+				userUUID = uuid.NullUUID{Valid: false} //Store as Null 
+			} else {
+				userUUID = uuid.NullUUID{UUID: parsed, Valid: true}
+			}
+		} else {
+			userUUID = uuid.NullUUID{Valid: false}
+		}
+	
+
+		requestID := r.Header.Get("X-Request-ID")
+		requestUUID, err := uuid.Parse(requestID) 
 		if err != nil {
-			cfg.Logger.Info.Printf("Invalid or missing X-User-ID: %v.\n", err)
+			cfg.Logger.Failure.Printf("Invalid or missing X-Request-ID: %v.\n", err)
 		}
 
-		eventID, err := cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
-			UserID:        userUUID,
-			Method:        method,
-			MethodDetails: details,
+		_, err = cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
+			RequestID:	requestUUID,
+			UserID:        	userUUID,
+			Method:        	method,
+			MethodDetails: 	details,
+			EventSeq: 1,
 		})
 		if err != nil {
 			cfg.Logger.Failure.Printf("Failed to store user event: %v", err)
@@ -37,23 +51,21 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 			cfg.Logger.Info.Printf("UserID: %v Method: %v URL: %v", userId, method, details)
 		}
 
-		ctx := context.WithValue(r.Context(), eventIDKey, eventID)
-		r = r.WithContext(ctx)
-
 		next.ServeHTTP(w, r)
 	})
 }
 
-func assertEventID(eventID any) int32 {
-	if eventID == nil {
-		log.Println("No eventID in context.")
-		return 0
+func (cfg *APIConfig) assertRequestID(requestID any) uuid.NullUUID {
+	if requestID == nil {
+		log.Println("No requestID in context.")
+		return uuid.NullUUID{Valid: false}
 	}
 
-	eventIDVal, ok := eventID.(int32); 
+	eventIDVal, ok := uuid.Parse(requestID); 
 	if !ok {
-		log.Println("eventID is not of type int") 
-		return 0
+		("requestID is not of type uuid") 
+		return uuid.NullUUID{Valid: false}
 	}
-	return eventIDVal
+	
+	requestUUID := uuid.Parse(
 }

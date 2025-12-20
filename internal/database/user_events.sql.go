@@ -41,7 +41,7 @@ SELECT COUNT(*) FROM user_events
 WHERE user_id = $1
 `
 
-func (q *Queries) CountEventsByUser(ctx context.Context, userID uuid.UUID) (int64, error) {
+func (q *Queries) CountEventsByUser(ctx context.Context, userID uuid.NullUUID) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countEventsByUser, userID)
 	var count int64
 	err := row.Scan(&count)
@@ -49,27 +49,37 @@ func (q *Queries) CountEventsByUser(ctx context.Context, userID uuid.UUID) (int6
 }
 
 const createUserEvent = `-- name: CreateUserEvent :one
-INSERT INTO user_events(user_id, method, method_details, created_at)
+INSERT INTO user_events(request_id, event_seq, user_id, method, method_details, created_at)
 VALUES (
         $1,
         $2,
         $3,
+        $4,
+        $5,
         Now()
 )
-RETURNING id
+RETURNING request_id
 `
 
 type CreateUserEventParams struct {
-	UserID        uuid.UUID
+	RequestID     uuid.UUID
+	EventSeq      int32
+	UserID        uuid.NullUUID
 	Method        string
 	MethodDetails string
 }
 
-func (q *Queries) CreateUserEvent(ctx context.Context, arg CreateUserEventParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, createUserEvent, arg.UserID, arg.Method, arg.MethodDetails)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) CreateUserEvent(ctx context.Context, arg CreateUserEventParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, createUserEvent,
+		arg.RequestID,
+		arg.EventSeq,
+		arg.UserID,
+		arg.Method,
+		arg.MethodDetails,
+	)
+	var request_id uuid.UUID
+	err := row.Scan(&request_id)
+	return request_id, err
 }
 
 const getEventCount = `-- name: GetEventCount :one
@@ -84,7 +94,7 @@ func (q *Queries) GetEventCount(ctx context.Context) (int64, error) {
 }
 
 const getEvents = `-- name: GetEvents :many
-SELECT id, user_id, method, method_details, created_at, state FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state FROM user_events
 ORDER BY created_at DESC
 `
 
@@ -98,7 +108,8 @@ func (q *Queries) GetEvents(ctx context.Context) ([]UserEvent, error) {
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -119,7 +130,7 @@ func (q *Queries) GetEvents(ctx context.Context) ([]UserEvent, error) {
 }
 
 const getEventsByAction = `-- name: GetEventsByAction :many
-SELECT id, user_id, method, method_details, created_at, state FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state FROM user_events
 WHERE method = $1
 ORDER BY  created_at DESC
 `
@@ -134,7 +145,8 @@ func (q *Queries) GetEventsByAction(ctx context.Context, method string) ([]UserE
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -155,7 +167,7 @@ func (q *Queries) GetEventsByAction(ctx context.Context, method string) ([]UserE
 }
 
 const getEventsByEndpoint = `-- name: GetEventsByEndpoint :many
-SELECT id, user_id, method, method_details, created_at, state FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state FROM user_events
 WHERE method_details::json->>'endpoint' = $1
 ORDER BY created_at DESC
 `
@@ -170,7 +182,8 @@ func (q *Queries) GetEventsByEndpoint(ctx context.Context, methodDetails string)
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -191,7 +204,7 @@ func (q *Queries) GetEventsByEndpoint(ctx context.Context, methodDetails string)
 }
 
 const getEventsByIP = `-- name: GetEventsByIP :many
-SELECT id, user_id, method, method_details, created_at, state FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state FROM user_events
 WHERE method_details::json->>'ip' = $1
 ORDER BY created_at DESC
 `
@@ -206,7 +219,8 @@ func (q *Queries) GetEventsByIP(ctx context.Context, methodDetails string) ([]Us
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -227,12 +241,12 @@ func (q *Queries) GetEventsByIP(ctx context.Context, methodDetails string) ([]Us
 }
 
 const getEventsByUser = `-- name: GetEventsByUser :many
-SELECT id, user_id, method, method_details, created_at, state  FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state  FROM user_events
 WHERE user_id = $1
 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetEventsByUser(ctx context.Context, userID uuid.UUID) ([]UserEvent, error) {
+func (q *Queries) GetEventsByUser(ctx context.Context, userID uuid.NullUUID) ([]UserEvent, error) {
 	rows, err := q.db.QueryContext(ctx, getEventsByUser, userID)
 	if err != nil {
 		return nil, err
@@ -242,7 +256,8 @@ func (q *Queries) GetEventsByUser(ctx context.Context, userID uuid.UUID) ([]User
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -263,7 +278,7 @@ func (q *Queries) GetEventsByUser(ctx context.Context, userID uuid.UUID) ([]User
 }
 
 const getEventsInTimeWindow = `-- name: GetEventsInTimeWindow :many
-SELECT id, user_id, method, method_details, created_at, state FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state FROM user_events
 WHERE created_at BETWEEN $1 AND $2
 ORDER BY created_at DESC
 `
@@ -283,7 +298,8 @@ func (q *Queries) GetEventsInTimeWindow(ctx context.Context, arg GetEventsInTime
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -304,7 +320,7 @@ func (q *Queries) GetEventsInTimeWindow(ctx context.Context, arg GetEventsInTime
 }
 
 const getLatestEvents = `-- name: GetLatestEvents :many
-SELECT id, user_id, method, method_details, created_at, state FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state FROM user_events
 ORDER BY created_at DESC
 LIMIT $1
 `
@@ -319,7 +335,8 @@ func (q *Queries) GetLatestEvents(ctx context.Context, limit int32) ([]UserEvent
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -340,14 +357,14 @@ func (q *Queries) GetLatestEvents(ctx context.Context, limit int32) ([]UserEvent
 }
 
 const getLatestEventsByUser = `-- name: GetLatestEventsByUser :many
-SELECT id, user_id, method, method_details, created_at, state FROM user_events
+SELECT request_id, event_seq, user_id, method, method_details, created_at, state FROM user_events
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2
 `
 
 type GetLatestEventsByUserParams struct {
-	UserID uuid.UUID
+	UserID uuid.NullUUID
 	Limit  int32
 }
 
@@ -361,7 +378,8 @@ func (q *Queries) GetLatestEventsByUser(ctx context.Context, arg GetLatestEvents
 	for rows.Next() {
 		var i UserEvent
 		if err := rows.Scan(
-			&i.ID,
+			&i.RequestID,
+			&i.EventSeq,
 			&i.UserID,
 			&i.Method,
 			&i.MethodDetails,
@@ -383,11 +401,11 @@ func (q *Queries) GetLatestEventsByUser(ctx context.Context, arg GetLatestEvents
 
 const getState = `-- name: GetState :one
 SELECT state FROM user_events
-WHERE id = $1
+WHERE request_id = $1
 `
 
-func (q *Queries) GetState(ctx context.Context, id int32) (sql.NullString, error) {
-	row := q.db.QueryRowContext(ctx, getState, id)
+func (q *Queries) GetState(ctx context.Context, requestID uuid.UUID) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getState, requestID)
 	var state sql.NullString
 	err := row.Scan(&state)
 	return state, err
@@ -405,32 +423,32 @@ func (q *Queries) ResetEvents(ctx context.Context) error {
 const setStateFailure = `-- name: SetStateFailure :exec
 UPDATE user_events
 SET state = 'Failure'
-WHERE id = $1
+WHERE request_id = $1
 `
 
-func (q *Queries) SetStateFailure(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, setStateFailure, id)
+func (q *Queries) SetStateFailure(ctx context.Context, requestID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, setStateFailure, requestID)
 	return err
 }
 
 const setStatePending = `-- name: SetStatePending :exec
 UPDATE user_events
 SET state = 'Pending'
-WHERE id = $1
+WHERE request_id = $1
 `
 
-func (q *Queries) SetStatePending(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, setStatePending, id)
+func (q *Queries) SetStatePending(ctx context.Context, requestID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, setStatePending, requestID)
 	return err
 }
 
 const setStateSuccess = `-- name: SetStateSuccess :exec
 UPDATE user_events 
 SET state = 'Success'
-WHERE id = $1
+WHERE request_id = $1
 `
 
-func (q *Queries) SetStateSuccess(ctx context.Context, id int32) error {
-	_, err := q.db.ExecContext(ctx, setStateSuccess, id)
+func (q *Queries) SetStateSuccess(ctx context.Context, requestID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, setStateSuccess, requestID)
 	return err
 }

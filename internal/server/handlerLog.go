@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 type Logger struct {
@@ -61,19 +63,19 @@ func ErrorLog() (*os.File, error) {
 	return logFile, nil
 }
 
-func (cfg *APIConfig) LogSuccess(eventID int32) {
-	cfg.Logger.Info.Printf("Event %d terminated successfully.", eventID)
-	cfg.DBQueries.SetStateSuccess(context.Background(), eventID)
+func (cfg *APIConfig) LogSuccess(requestID uuid.UUID) {
+	cfg.Logger.Info.Printf("Event %d terminated successfully.", requestID)
+	cfg.DBQueries.SetStateSuccess(context.Background(), requestID)
 }
 
-func (cfg *APIConfig) LogFailure(eventID int32, err error) {
-	cfg.Logger.Failure.Printf("Event %d failed with error: %v", eventID, err)
-	cfg.DBQueries.SetStateFailure(context.Background(), eventID)
+func (cfg *APIConfig) LogFailure(requestID uuid.UUID, err error) {
+	cfg.Logger.Failure.Printf("Event %d failed with error: %v", requestID, err)
+	cfg.DBQueries.SetStateFailure(context.Background(), requestID) 
 }
 
-func (cfg *APIConfig) LogWarning(eventID int32, message string) {
-	cfg.Logger.Warning.Printf("Event %d Message: %s", eventID, message)
-	cfg.DBQueries.SetStateSuccess(context.Background(), eventID)
+func (cfg *APIConfig) LogWarning(requestID uuid.UUID, message string) {
+	cfg.Logger.Warning.Printf("Event %d Message: %s", requestID, message)
+	cfg.DBQueries.SetStateSuccess(context.Background(), requestID)
 }
 
 
