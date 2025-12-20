@@ -12,14 +12,14 @@ import (
 
 func main() {
 	//Start up logger to write user events and responses
-	logger, eventFile, err := server.NewLog()
+	logger, eventFile, err := server.ServerLog()
 	if err != nil {
 		panic(err)
 	}
 	defer eventFile.Close()
 
 	//Modify std log module to write to stdout and errors.log 
-	errFile, err := server.InitStdLogger()
+	errFile, err := server.ErrorLog()
 	if err != nil {
 		panic(err)
 	}

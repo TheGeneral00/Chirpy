@@ -13,7 +13,7 @@ type Logger struct {
 	Failure *log.Logger
 }
 
-func NewLog() (*Logger, *os.File, error) {
+func ServerLog() (*Logger, *os.File, error) {
 	//Create logs dir if not exist
 	if err := os.MkdirAll("logs", 0755); err != nil {
 		return nil, nil, err
@@ -40,7 +40,7 @@ func NewLog() (*Logger, *os.File, error) {
 
 
 // Initialize the standard log package to write to errors.log and stdout
-func InitStdLogger() (*os.File, error) {
+func ErrorLog() (*os.File, error) {
 	// Check for existence of the logs dir is managed by function above
 	fullPath := "logs/errors.log"
 	logFile, err := os.OpenFile(fullPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
