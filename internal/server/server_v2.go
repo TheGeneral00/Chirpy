@@ -14,6 +14,7 @@ type APIConfig struct {
 	JWTSecret      	string
 	PolkaKey       	string
 	Logger		*Logger
+	LoggerJson	*LoggerJson
 }
 
 func New(cfg *APIConfig, filepathRoot, port string) *http.Server{

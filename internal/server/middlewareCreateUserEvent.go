@@ -34,6 +34,7 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 		requestUUID, err := uuid.Parse(requestID) 
 		if err != nil {
 			cfg.Logger.Failure.Printf("Invalid or missing X-Request-ID: %v.\n", err)
+			cfg.logMissingRequestID(userUUID, r.Method, r.URL.Path)
 			helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to assign a requestID", nil)
 		}
 

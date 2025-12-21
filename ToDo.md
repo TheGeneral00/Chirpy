@@ -7,7 +7,7 @@
 | [x] | 5 | [Folder structure](#folder-structure) | Base project layout and module separation |
 | [x] | 5 | [Config system](#config-system) | Central configuration with env & file support |
 | [x] | 5 | [JWT auth](#jwt-auth) | Secure authentication with tokens |
-| [ ] | 5 | [Routing setup](#routing-setup) | Router initialization, groups, middleware |
+| [] | 5 | [Routing setup](#routing-setup) | Router initialization, groups, middleware |
 | [x] | 5 | [DB migrations](#db-migrations) | Versioned schema management |
 | [ ] | 5 | [Panic recovery middleware](#panic-recovery-middleware) | Prevent server crashes, return safe errors |
 | [ ] | 5 | [Structured logging](#structured-logging) | Consistent, machine-parseable logs |
@@ -41,7 +41,7 @@
 
 # Extended Feature Descriptions
 
-## Folder structure
+## Folder structure 'Done'
 **Priority:** 5  
 A clean modular layout.
 
@@ -52,7 +52,7 @@ A clean modular layout.
 
 ---
 
-## Config system
+## Config system 'Done'
 **Priority:** 5  
 
 **Subtasks**
@@ -63,7 +63,7 @@ A clean modular layout.
 
 ---
 
-## JWT auth
+## JWT auth 'Done'
 **Priority:** 5  
 
 **Subtasks**
@@ -74,23 +74,24 @@ A clean modular layout.
 
 ---
 
-## Routing setup
+## Routing setup 'In Progress'
 **Priority:** 5  
 
 **Subtasks**
-- Create router groups (`/auth`, `/api/v1`)
-- Attach middlewares
-- Add 404 and MethodNotAllowed handlers
+- Create router groups (`/auth`, `/api/v1`) 'Done'
+- Attach middlewares 'Done'
+- Add 404 and MethodNotAllowed handlers 'Done'
+- implement further routes while new functions are added
 
 ---
 
-## DB migrations
+## DB migrations 'In Progress'
 **Priority:** 5  
 
 **Subtasks**
-- Create `sql/migrations`
-- Setup migrate tool integration
-- Auto-run on startup (optional)
+- Create `sql/migrations` 'Done'
+- Setup migrate tool integration 'Done'
+- Auto-run on startup (optional) 
 
 ---
 
@@ -104,28 +105,29 @@ A clean modular layout.
 
 ---
 
-## Structured logging
+## Structured logging 'In Progress'
 **Priority:** 5  
 
 **Subtasks**
-- Use zerolog / slog / zap
-- Add timestamp, request ID, latency fields
+- logger 'Done'
+- Add timestamp, request ID 'Done'
+- latency fields (optional)
 - Provide log wrappers
 
 ---
 
-## Central error handling
+## Central error handling 'In Progress'
 **Priority:** 5  
 
 **Subtasks**
-- Convert internal errors → API errors
-- Add error codes
-- JSON error format
+- Convert internal errors → API errors 'Done'
+- Add error codes 'Done'
+- JSON error format 'Done'
 - Attach correlation IDs
 
 ---
 
-## README
+## README 'In Progress'
 **Priority:** 5  
 
 **Subtasks**
@@ -140,9 +142,9 @@ A clean modular layout.
 **Priority:** 4  
 
 **Subtasks**
-- Validate payloads w/ structs
-- Add sanitization (SQLi, XSS)
-- Add reusable validator module
+- Validate payloads w/ structs 
+- Add sanitization (SQLi, XSS) 'In Progress'
+- Add reusable validator module 'In Progress'
 
 ---
 
@@ -150,7 +152,8 @@ A clean modular layout.
 **Priority:** 4  
 
 **Subtasks**
-- Log method, path, status, latency
+- Log method, path, status 'Done'
+- track latency 
 - Mask sensitive data
 - Include correlation ID
 
@@ -180,8 +183,8 @@ A clean modular layout.
 **Priority:** 4  
 
 **Subtasks**
-- Insert user events into table
-- Design event schema
+- Insert user events into table 'Done'
+- Design event schema 'Done'
 - Add async buffer (optional)
 
 ---
