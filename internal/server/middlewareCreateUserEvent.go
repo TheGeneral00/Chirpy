@@ -1,14 +1,12 @@
 package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/TheGeneral00/Chirpy/internal/database"
+	"github.com/TheGeneral00/Chirpy/internal/helpers"
 	"github.com/google/uuid"
 )
-
-
 
 // Middleware to create user event
 func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
@@ -36,6 +34,7 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 		requestUUID, err := uuid.Parse(requestID) 
 		if err != nil {
 			cfg.Logger.Failure.Printf("Invalid or missing X-Request-ID: %v.\n", err)
+			helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to assign a requestID", nil)
 		}
 
 		_, err = cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
@@ -53,19 +52,4 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func (cfg *APIConfig) assertRequestID(requestID any) uuid.NullUUID {
-	if requestID == nil {
-		log.Println("No requestID in context.")
-		return uuid.NullUUID{Valid: false}
-	}
-
-	eventIDVal, ok := uuid.Parse(requestID); 
-	if !ok {
-		("requestID is not of type uuid") 
-		return uuid.NullUUID{Valid: false}
-	}
-	
-	requestUUID := uuid.Parse(
 }

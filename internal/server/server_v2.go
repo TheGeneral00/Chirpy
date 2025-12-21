@@ -35,6 +35,7 @@ func New(cfg *APIConfig, filepathRoot, port string) *http.Server{
 		r.Get("/refresh", cfg.handlerRefresh)
 		r.Get("/revoke", cfg.handlerRevoke)
 		r.Get("/reset", cfg.handlerReset)
+		r.Get("/metrics", cfg.handlerMetrics)
 	})
 
 	/*	
@@ -71,7 +72,7 @@ func New(cfg *APIConfig, filepathRoot, port string) *http.Server{
 	*/
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request){
-		http.Redirect(w, r, "/app/", http.StatusPermanentRedirect)
+		http.Redirect(w, r, "/app/templates", http.StatusPermanentRedirect)
 	})
 
 	fs := http.FileServer(http.Dir(filepathRoot))
