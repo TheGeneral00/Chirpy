@@ -1,2 +1,0 @@
-- test user_event creation 
-        
