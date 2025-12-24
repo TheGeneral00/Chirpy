@@ -110,11 +110,26 @@ func ServerLogJson() (*log.Logger, *os.File, error) {
 	return logger, logFile, nil
 }
 
+
+/*------ main log wrapper functions ONLY USE THESE! ------
+If needed adjust the under lying functions, but pay attention not to break normalization of log entries
+*/
+
 func (cfg *APIConfig) LogEvent(requestID uuid.UUID, userID uuid.NullUUID, method, path, state, msg, level string) {
-	// Plain log
-	cfg.Logger.Info.Printf("level: %s request_id: %v user_id: %v method: %s path: %s state: %s message: %s",
-		level, requestID, userID, method, path, state, msg)
+	// Plain log with switch to differ by state
+	switch state {
 	
+	case "Warning":
+		cfg.Logger.Warning.Printf("level: %s request_id: %v user_id: %v method: %s path: %s state: %s message: %s",
+			level, requestID, userID, method, path, state, msg)
+	case "Failure":
+		cfg.Logger.Failure.Printf("level: %s request_id: %v user_id: %v method: %s path: %s state: %s message: %s",
+			level, requestID, userID, method, path, state, msg)
+	default:
+		cfg.Logger.Info.Printf("level: %s request_id: %v user_id: %v method: %s path: %s state: %s message: %s",
+			level, requestID, userID, method, path, state, msg)
+	}
+
 	entry := entryJson{
 		Timestamp: 	time.Now().UTC(),
 		Level:		level,	
@@ -126,13 +141,18 @@ func (cfg *APIConfig) LogEvent(requestID uuid.UUID, userID uuid.NullUUID, method
 		Message: 	msg,
 	}
 
-	jsonData, _ := json.Marshal(entry)
+	jsonData, err := json.Marshal(entry)
+	if err != nil {
+		log.Printf("Failed to marshal json log entry for request %v \n Error: %v", requestID, err)
+		return
+	}
+
 	cfg.LoggerJson.log.Println(string(jsonData))
 }
 
 func (cfg *APIConfig) logMissingRequestID(userID uuid.NullUUID, method, path string) {
 	cfg.Logger.Failure.Printf("Failed to retrieve or create request id for:\n user_id: %v method: %s path: %s state: %s message: %s",
-		userID, method, path, "Event without request id.")
+		userID, method, path, "Failure", "Event without request id.")
 
 	entry := map[string]interface{}{
 		"timestamp": 		time.Now().UTC(),

@@ -6,7 +6,7 @@ CREATE TABLE user_events (
         method TEXT NOT NULL,
         method_details TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT NOW(),
-        state TEXT DEFAULT 'Failed' CHECK (state IN('Failed', 'Success', 'Pending')),
+        state TEXT DEFAULT 'Failed' CHECK (state IN('Pending', 'Failed', 'Success', 'Pending')),
         PRIMARY KEY (request_id, event_seq)
 );
 

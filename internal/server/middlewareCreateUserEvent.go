@@ -1,12 +1,29 @@
 package server
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/TheGeneral00/Chirpy/internal/database"
 	"github.com/TheGeneral00/Chirpy/internal/helpers"
 	"github.com/google/uuid"
 )
+
+type RequestMeta struct {
+	RequestID 	uuid.UUID
+	UserID		uuid.NullUUID
+	Method		string
+	Path 		string
+	IP		string
+	UserAgent	string
+	StartedAt	time.Time
+}
+
+//only used for context 
+type requestMetaKeyType struct{}
+
+var requestMetaKey requestMetaKeyType
 
 // Middleware to create user event
 func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler {
@@ -36,6 +53,7 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 			cfg.Logger.Failure.Printf("Invalid or missing X-Request-ID: %v.\n", err)
 			cfg.logMissingRequestID(userUUID, r.Method, r.URL.Path)
 			helpers.RespondWithError(w, http.StatusInternalServerError, "Failed to assign a requestID", nil)
+			return
 		}
 
 		_, err = cfg.DBQueries.CreateUserEvent(r.Context(), database.CreateUserEventParams{
@@ -51,6 +69,35 @@ func (cfg *APIConfig) MiddlewareCreateUserEvent(next http.Handler) http.Handler 
 			cfg.Logger.Info.Printf("UserID: %v Method: %v URL: %v", userId, method, details)
 		}
 
-		next.ServeHTTP(w, r)
+		requestMeta := createRequestMeta(requestUUID, userUUID, r.Method, r.URL.Path, getRequestIP(r), r.UserAgent())
+		ctx := context.WithValue(r.Context(), requestMetaKey, requestMeta)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func createRequestMeta(requestID uuid.UUID, userID uuid.NullUUID, method , path , ip , userAgent string) RequestMeta {
+	requestMeta := RequestMeta{
+		RequestID: requestID,
+		UserID: userID,
+		Method: method,
+		Path: path,
+		IP: ip,
+		UserAgent: userAgent,
+		StartedAt: time.Now().UTC(),
+	} 
+
+	return requestMeta
+}
+
+//------ Helper functions for populating requestMeta struct ------
+
+func getRequestIP(r *http.Request) string {
+	ip := r.Header.Get("X-Real-IP")
+	if ip == "" {
+		ip = r.Header.Get("X-Forwarded-For")
+	}
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+	return ip
 }
