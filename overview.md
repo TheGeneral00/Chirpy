@@ -129,8 +129,6 @@ PostalWarden/
 
 ## 7️⃣ Learning Outcomes
 
-Working on PostalWarden will teach you:
-
 * Multi-language integration & FFI patterns (Go ↔ Rust ↔ C)
 * Safe interaction with low-level libraries (YARA in Rust)
 * Designing microservices vs libraries thoughtfully
