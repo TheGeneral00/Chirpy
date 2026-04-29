@@ -12,7 +12,7 @@ import (
 
 func MakeJWT(userID uuid.UUID, tokensecret string, expiresIn time.Duration) (string, error) {
         claims := jwt.RegisteredClaims{
-                Issuer: "chirpy",
+                Issuer: "Postal Warden",
                 IssuedAt: jwt.NewNumericDate(time.Now()),
                 ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
                 Subject: userID.String(),
